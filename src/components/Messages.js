@@ -68,61 +68,24 @@ class FriendDetails extends Component {
 class Conversation extends Component {
   constructor(props){
     super(props);
-
-    const first_date = new Date(this.props.profile.info.account.member_since.substring(0, 10).split('/'));
-    const last_date = new Date(this.props.profile.info.account.last_update.substring(0, 10).split('/'));
-
     this.state = {
       messages: [],
       pinboard: [],
       activeTab: 'messages',
-      first_date: first_date,
-      last_date: last_date,
-      range: this.months_between(first_date, last_date)
-    }
-  }
-  months_between = (date_from, date_to) => {
-    return date_to.getMonth() - date_from.getMonth()
-           + ( 12 * ( date_to.getFullYear() - date_from.getFullYear() ) );
+    };
   }
   componentDidUpdate(prevProps) {
     if (this.props.active_user !== prevProps.active_user) {
-      let messages = [];
-      let pinboard = this.props.pinboard;
+      let pinboard = this.props.pinboard.sort((a, b) => {return a.time > b.time})
 
-      this.props.inbox.map(message => {
-        messages.push({
-          ...message,
-          type: 'in'
-        })
-      })
-      this.props.outbox.map(message => {
-        messages.push({
-          ...message,
-          type: 'out'
-        })
-      })
-
-      messages.sort((a, b) => {return a.time > b.time});
-      pinboard.sort((a, b) => {return a.time > b.time});
-
-      const last_message = [...messages].pop();
-      const last_pinboard = [...pinboard].pop();
-
-      let last_dates = [
-        this.props.profile.info.account.last_update
-      ];
-      if (last_message){ last_dates.push(last_message.time); }
-      if (last_pinboard){ last_dates.push(last_pinboard.time); }
-      last_dates.sort((a, b) => a > b);
-
-      const last_date = new Date(last_dates.pop().substring(0, 10).split('/'));
+      let messages = [
+        ...this.props.inbox.map((message) => { return {...message, type: 'in'}}),
+        ...this.props.outbox.map((message) => { return {...message, type: 'out'}})
+      ].sort((a, b) => {return a.time > b.time});
 
       this.setState({
         messages: messages,
         pinboard: pinboard,
-        last_date: last_date,
-        range: this.months_between(this.state.first_date, last_date)
       })
     }
   }
